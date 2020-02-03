@@ -15,16 +15,25 @@
 
 using namespace std;
 
-// Función que genera el dataset
-void createCsvFile() 
+// Función para crear un archivo
+void createCsvFile(string fileName)
 {
 	fstream file;
+	file.open(fileName, ios::out);
+	file.close();
+}
 
+
+// Función que genera el dataset
+void createSubsequenceDataset() 
+{
+	createCsvFile("dataset1.csv");
+	fstream file;
 	// Inicializar la semilla aleatoria
 	srand(time(NULL));
 
 	// Abrir o crear un archivo .csv
-	file.open("dataset1.csv", ios::out);
+	file.open("dataset1.csv", ios::app);
 
 	// Escribir enteros aleatorios en el archivo
 	for (int i = 0; i < 10; i++)
@@ -42,6 +51,56 @@ void createCsvFile()
 	file.close();
 }
 
+// Función para agregar las posiciones de la solucion y tiempo de cpu de cada instancia a un archivo .csv
+void appendToCsvFile(string fileName, int startPosition, int endPosition, int maxSum, double cpu_time)
+{
+	fstream file;
+	file.open(fileName, ios::app);
+	file << startPosition << ',' << endPosition << ',' << maxSum << ',' << cpu_time <<'\n';
+	file.close();
+}
+
+int maxSubSum1(const vector<int>& a)
+{
+	int maxSum = 0; // Respuesta al problema de la máxima suma de elementos consecutivos de un vector
+	int startPosition = 0; // Posición del vector donde inicia la solución. 
+	int finishPosition = 0; // Posición del vector donde termina la solución.
+	clock_t start; // Tiempo de inicio
+	clock_t end; // Tiempo de fin
+	double cpu_time_used;
+
+	start = clock(); // Iniciamos a cronometrar
+	for (int i = 0; i < a.size(); i++)
+	{
+		for (int j = i; j < a.size(); j++)
+		{
+			int thisSum = 0;
+			for (int k = i; k <= j; k++)
+			{
+				thisSum += a[k];
+			}
+			if (thisSum > maxSum)
+			{
+				maxSum = thisSum;
+				startPosition = i;
+				finishPosition = j;
+			}
+		}
+	}
+	end = clock(); // Paramos de cronometrar
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+	//cout << "La solucion inicia en la posicion " << startPosition << " y termina en la posicion " << finishPosition << endl;
+	//cout << "El cpu tardo " << cpu_time_used << " segundos.\n";
+	appendToCsvFile("maxSubSum1.csv", startPosition, finishPosition, maxSum, cpu_time_used);
+	return maxSum;
+}
+
+int maxSubSum2(const vector<int>& a)
+{
+
+	return 0;
+}
 
 int main() {
 	
@@ -50,11 +109,11 @@ int main() {
 	vector<vector<int>> parsedCsv;
 	
 	// Ejecutar solo una vez
-	// createCsvFile();
+	// createSubsequenceDataset();
 
 	// Leer un archivo .csv y guardar su contenido en arreglos
 
-	ifstream data("dataset1.csv");
+	fstream data("dataset1.csv",ios::in);
 	string line;
 	while (std::getline(data,line))
 	{
@@ -85,6 +144,15 @@ int main() {
 	// Ejecutar el algoritmo con complejidad O( n^2)
 
 	// Ejecutar el algoritmo con complejidad O(n^3)
+	createCsvFile("maxSubSum1.csv"); // Archivo donde se almacenan los resultados del algoritmo utilizando los datos de dataset1.csv
+	// NOTA: Los resultados se agregan a maxSubSum1.csv dentro de la función, por lo tanto se debe crear el archivo antes
+	for (int i = 0; i < parsedCsv.size(); i++)
+	{
+		maxSubSum1(parsedCsv[i]);
+	}
+	//cout << "La suma maxima es " << maxSubSum1(parsedCsv[0]) << endl;
+	//maxSubSum1(parsedCsv[1]);
+	//maxSubSum1(parsedCsv[2]);
 
 	return 0;
 }

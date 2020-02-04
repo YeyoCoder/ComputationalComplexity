@@ -12,7 +12,7 @@
 #include <time.h> // Biblioteca para tiempos
 #include <sstream> // Biblioteca para manipular cadenas de textos
 #include <vector> // Biblioteca para arreglos
-
+#include <limits.h> // Biblioteca para buscar máximos
 using namespace std;
 
 // Función para crear un archivo
@@ -98,8 +98,93 @@ int maxSubSum1(const vector<int>& a)
 
 int maxSubSum2(const vector<int>& a)
 {
+	int startPosition = 0; // Posición del vector donde inicia la solución. 
+	int finishPosition = 0; // Posición del vector donde termina la solución.
+	clock_t start; // Tiempo de inicio
+	clock_t end; // Tiempo de fin
+	double cpu_time_used;
 
-	return 0;
+	int maxSum = 0;
+
+	start = clock();
+	for (int i = 0; i < a.size(); i++)
+	{
+		int thisSum = 0;
+		for (int j = i; j < a.size(); j++)
+		{
+			thisSum += a[j];
+			if (thisSum > maxSum)
+			{
+				maxSum = thisSum;
+				startPosition = i;
+				finishPosition = j;
+			}
+		}
+	}
+	end = clock();
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+	appendToCsvFile("maxSubSum2.csv", startPosition, finishPosition, maxSum, cpu_time_used);
+	return maxSum;
+}
+
+// A utility funtion to find maximum of two integers 
+int max(int a, int b) { return (a > b) ? a : b; }
+
+// A utility funtion to find maximum of three integers 
+int max3(int a, int b, int c) { return max(max(a, b), c); }
+
+int maxSumRec(const vector<int>& a, int left, int right)
+{
+
+	clock_t start; // Tiempo de inicio
+	clock_t end; // Tiempo de fin
+	double cpu_time_used;
+	int startPosition = 0; // Posición del vector donde inicia la solución. 
+	int finishPosition = 0; // Posición del vector donde termina la solución.
+
+	start = clock();
+	if (left == right) // Caso base
+	{
+		if (a[left] > 0)
+		{
+			return a[left];
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	int center = (left + right) / 2;
+	int maxLeftSum = maxSumRec(a, left, center);
+	int maxRightSum = maxSumRec(a, center + 1, right);
+	int maxLeftBorderSum = 0, leftBorderSum = 0;
+	for (int i = center; i >= left; i--)
+	{
+		leftBorderSum += a[i];
+		if (leftBorderSum > maxLeftBorderSum)
+		{
+			maxLeftBorderSum = leftBorderSum;
+			startPosition = i;
+		}
+	}
+	int maxRightBorderSum = 0, rightBorderSum = 0;
+	for (int j = center + 1	; j <= right; j++)
+	{
+		rightBorderSum += a[j];
+		if (rightBorderSum > maxRightBorderSum)
+		{
+			maxRightBorderSum = rightBorderSum;
+		}
+	}
+	end = clock();
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+	appendToCsvFile("maxSubSum3.csv", startPosition, finishPosition, max3(maxLeftSum, maxRightSum, maxLeftBorderSum + maxRightBorderSum), cpu_time_used);
+	return max3(maxLeftSum, maxRightSum, maxLeftBorderSum + maxRightBorderSum);
+}
+
+int maxSubSum3(const vector<int>& a)
+{
+	return maxSumRec(a, 0, a.size() - 1);
 }
 
 int main() {
@@ -140,8 +225,18 @@ int main() {
 	// Ejecutar el algoritmo con complejidad O(n)
 
 	// Ejecutar el algoritmo con complejidad O(n log n)
+	createCsvFile("maxSubSum3.csv");
+	for (int i = 0; i < parsedCsv.size(); i++)
+	{
+		maxSubSum3(parsedCsv[i]);
+	}
 
 	// Ejecutar el algoritmo con complejidad O( n^2)
+	createCsvFile("maxSubSum2.csv"); // Archivo donde se almacenan los resultados del utilizando los datos de entrada dataset1.csv
+	for (int i = 0; i < parsedCsv.size(); i++)
+	{
+		maxSubSum2(parsedCsv[i]);
+	}
 
 	// Ejecutar el algoritmo con complejidad O(n^3)
 	createCsvFile("maxSubSum1.csv"); // Archivo donde se almacenan los resultados del algoritmo utilizando los datos de dataset1.csv
@@ -153,6 +248,6 @@ int main() {
 	//cout << "La suma maxima es " << maxSubSum1(parsedCsv[0]) << endl;
 	//maxSubSum1(parsedCsv[1]);
 	//maxSubSum1(parsedCsv[2]);
-
+	
 	return 0;
 }

@@ -13,6 +13,7 @@
 #include <sstream> // Biblioteca para manipular cadenas de textos
 #include <vector> // Biblioteca para arreglos
 #include <limits.h> // Biblioteca para buscar máximos
+#include <math.h> // Potencias
 using namespace std;
 
 // Función para crear un archivo
@@ -25,7 +26,7 @@ void createCsvFile(string fileName)
 
 
 // Función que genera el dataset
-void createSubsequenceDataset() 
+void createSubsequenceDataset(int k) 
 {
 	createCsvFile("dataset1.csv");
 	fstream file;
@@ -36,12 +37,12 @@ void createSubsequenceDataset()
 	file.open("dataset1.csv", ios::app);
 
 	// Escribir enteros aleatorios en el archivo
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 100; i++)
 	{
-		for (int j = 0; j < 11; j++)
+		for (int j = 0; j < pow(10,k); j++)
 		{
 			file << rand() % 18 - 9;
-			if (j < 10)
+			if (j < pow(10, k) - 1)
 			{
 				file << ',';
 			}
@@ -130,23 +131,26 @@ int maxSubSum2(const vector<int>& a)
 // A utility funtion to find maximum of two integers 
 int max(int a, int b) { return (a > b) ? a : b; }
 
-// A utility funtion to find maximum of three integers 
+// A utility funtion to find maximum of three integers 		center	1	int
+
 int max3(int a, int b, int c) { return max(max(a, b), c); }
 
-int maxSumRec(const vector<int>& a, int left, int right)
+struct resultMaxSubSum3
 {
-
-	clock_t start; // Tiempo de inicio
-	clock_t end; // Tiempo de fin
+	int startPosition, endPosition, maxSum;
 	double cpu_time_used;
-	int startPosition = 0; // Posición del vector donde inicia la solución. 
-	int finishPosition = 0; // Posición del vector donde termina la solución.
-
-	start = clock();
+};
+int maxSumRec(const vector<int>& a, int left, int right, int* startPosition, int* endPosition, int* startPositionLeft, int* endPositionLeft, int* startPositionRight, int* endPositionRight)
+{
+	int maxSum;
+	// int startPositionLeft, endPositionLeft , startPositionRight, endPositionRight;
+	
 	if (left == right) // Caso base
 	{
 		if (a[left] > 0)
 		{
+			*startPosition = left;
+			*endPosition = left;
 			return a[left];
 		}
 		else
@@ -155,16 +159,17 @@ int maxSumRec(const vector<int>& a, int left, int right)
 		}
 	}
 	int center = (left + right) / 2;
-	int maxLeftSum = maxSumRec(a, left, center);
-	int maxRightSum = maxSumRec(a, center + 1, right);
+	int maxLeftSum = maxSumRec(a, left, center, startPosition, endPosition, startPositionLeft, endPositionLeft, startPositionRight, endPositionRight);
+	int maxRightSum = maxSumRec(a, center + 1, right, startPosition, endPosition, startPositionLeft, endPositionLeft, startPositionRight, endPositionRight);
 	int maxLeftBorderSum = 0, leftBorderSum = 0;
 	for (int i = center; i >= left; i--)
 	{
 		leftBorderSum += a[i];
 		if (leftBorderSum > maxLeftBorderSum)
 		{
+			*startPositionLeft = i;
+			*endPositionLeft = center;
 			maxLeftBorderSum = leftBorderSum;
-			startPosition = i;
 		}
 	}
 	int maxRightBorderSum = 0, rightBorderSum = 0;
@@ -173,18 +178,81 @@ int maxSumRec(const vector<int>& a, int left, int right)
 		rightBorderSum += a[j];
 		if (rightBorderSum > maxRightBorderSum)
 		{
+			*startPositionRight = center + 1;
+			*endPositionRight = j;
 			maxRightBorderSum = rightBorderSum;
 		}
 	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	appendToCsvFile("maxSubSum3.csv", startPosition, finishPosition, max3(maxLeftSum, maxRightSum, maxLeftBorderSum + maxRightBorderSum), cpu_time_used);
-	return max3(maxLeftSum, maxRightSum, maxLeftBorderSum + maxRightBorderSum);
+	int midSum = maxLeftBorderSum + maxRightBorderSum;
+	maxSum = max3(maxLeftSum, maxRightSum, midSum);
+	
+	if (maxLeftSum == maxSum)
+	{
+		*startPosition = *startPositionLeft;
+		//*endPosition = *endPositionLeft;
+	}
+	if (maxRightSum == maxSum)
+	{
+		// *startPosition = *startPositionRight;
+		*endPosition = *endPositionRight;
+	}
+	if (midSum == maxSum)
+	{
+		 *startPosition = *startPosition;
+		 *endPosition = *endPosition;
+	}
+	return maxSum;
 }
 
 int maxSubSum3(const vector<int>& a)
 {
-	return maxSumRec(a, 0, a.size() - 1);
+	clock_t start; // Tiempo de inicio
+	clock_t end; // Tiempo de fin
+	double cpu_time_used;
+	int startPosition = 0; // Posición del vector donde inicia la solución. 
+	int endPosition = 0; // Posición del vector donde termina la solución.
+	int maxSum = 0;
+	int startPositionLeft = 0;
+	int endPositionLeft = 0;
+	int startPositionRight = 0, endPositionRight = 0;
+
+	start = clock();
+	maxSum = maxSumRec(a, 0, a.size() - 1, &startPosition, &endPosition, &startPositionLeft, &endPositionLeft, &startPositionRight, &endPositionRight);
+	end = clock();
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+	appendToCsvFile("maxSubSum3.csv", startPosition, endPosition, maxSum, cpu_time_used);
+	return maxSum;
+}
+
+int maxSubSum4(const vector<int>& a)
+{
+	int maxSum = 0, thisSum = 0, startPosition = 0, endPosition = 0, newPosition = 0;
+	clock_t start; // Tiempo de inicio
+	clock_t end; // Tiempo de fin
+	double cpu_time_used;
+
+	start = clock();
+	for (int j = 0; j < a.size(); j++)
+	{
+		thisSum += a[j];
+		if (thisSum > maxSum)
+		{
+			maxSum = thisSum;
+			startPosition = newPosition;
+			endPosition = j;
+
+		}		
+		else if (thisSum < 0)
+		{
+			thisSum = 0;
+			newPosition = j + 1;
+		}
+			
+	}
+	end = clock();
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+	appendToCsvFile("maxSubSum4.csv", startPosition, endPosition, maxSum, cpu_time_used);
+	return maxSum;
 }
 
 int main() {
@@ -194,7 +262,7 @@ int main() {
 	vector<vector<int>> parsedCsv;
 	
 	// Ejecutar solo una vez
-	// createSubsequenceDataset();
+	 createSubsequenceDataset(4);
 
 	// Leer un archivo .csv y guardar su contenido en arreglos
 
@@ -223,9 +291,13 @@ int main() {
 		cout << endl;
 	}
 	// Ejecutar el algoritmo con complejidad O(n)
-
+	createCsvFile("maxSubSum4.csv");
+	for (int i = 0; i < parsedCsv.size(); i++)
+	{
+		maxSubSum4(parsedCsv[i]);
+	}
 	// Ejecutar el algoritmo con complejidad O(n log n)
-	createCsvFile("maxSubSum3.csv");
+	createCsvFile("maxSubSum3.csv"); // Posiciones erroneas
 	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		maxSubSum3(parsedCsv[i]);

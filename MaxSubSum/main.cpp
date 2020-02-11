@@ -28,21 +28,23 @@ void createCsvFile(string fileName)
 // Función que genera el dataset
 void createSubsequenceDataset(int k) 
 {
-	createCsvFile("dataset1.csv");
+	int array_size = pow(10, k);
+	string fileName = "arraysSize10exp" + to_string(k) + ".csv";
+	createCsvFile(fileName);
 	fstream file;
 	// Inicializar la semilla aleatoria
 	srand(time(NULL));
 
 	// Abrir o crear un archivo .csv
-	file.open("dataset1.csv", ios::app);
+	file.open(fileName, ios::app);
 
 	// Escribir enteros aleatorios en el archivo
 	for (int i = 0; i < 100; i++)
 	{
-		for (int j = 0; j < pow(10,k); j++)
+		for (int j = 0; j < array_size; j++)
 		{
 			file << rand() % 18 - 9;
-			if (j < pow(10, k) - 1)
+			if (j < array_size - 1)
 			{
 				file << ',';
 			}
@@ -61,7 +63,7 @@ void appendToCsvFile(string fileName, int startPosition, int endPosition, int ma
 	file.close();
 }
 
-int maxSubSum1(const vector<int>& a)
+int maxSubSum1(const vector<int>& a, int k)
 {
 	int maxSum = 0; // Respuesta al problema de la máxima suma de elementos consecutivos de un vector
 	int startPosition = 0; // Posición del vector donde inicia la solución. 
@@ -93,11 +95,11 @@ int maxSubSum1(const vector<int>& a)
 
 	//cout << "La solucion inicia en la posicion " << startPosition << " y termina en la posicion " << finishPosition << endl;
 	//cout << "El cpu tardo " << cpu_time_used << " segundos.\n";
-	appendToCsvFile("maxSubSum1.csv", startPosition, finishPosition, maxSum, cpu_time_used);
+	appendToCsvFile("maxSubSum1_for_nSize10exp" + to_string(k) + ".csv", startPosition, finishPosition, maxSum, cpu_time_used);
 	return maxSum;
 }
 
-int maxSubSum2(const vector<int>& a)
+int maxSubSum2(const vector<int>& a, int k)
 {
 	int startPosition = 0; // Posición del vector donde inicia la solución. 
 	int finishPosition = 0; // Posición del vector donde termina la solución.
@@ -124,7 +126,7 @@ int maxSubSum2(const vector<int>& a)
 	}
 	end = clock();
 	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	appendToCsvFile("maxSubSum2.csv", startPosition, finishPosition, maxSum, cpu_time_used);
+	appendToCsvFile("maxSubSum2_for_nSize10exp"+ to_string(k) + ".csv", startPosition, finishPosition, maxSum, cpu_time_used);
 	return maxSum;
 }
 
@@ -135,11 +137,6 @@ int max(int a, int b) { return (a > b) ? a : b; }
 
 int max3(int a, int b, int c) { return max(max(a, b), c); }
 
-struct resultMaxSubSum3
-{
-	int startPosition, endPosition, maxSum;
-	double cpu_time_used;
-};
 int maxSumRec(const vector<int>& a, int left, int right, int* startPosition, int* endPosition, int* startPositionLeft, int* endPositionLeft, int* startPositionRight, int* endPositionRight)
 {
 	int maxSum;
@@ -204,7 +201,7 @@ int maxSumRec(const vector<int>& a, int left, int right, int* startPosition, int
 	return maxSum;
 }
 
-int maxSubSum3(const vector<int>& a)
+int maxSubSum3(const vector<int>& a, int k)
 {
 	clock_t start; // Tiempo de inicio
 	clock_t end; // Tiempo de fin
@@ -220,11 +217,11 @@ int maxSubSum3(const vector<int>& a)
 	maxSum = maxSumRec(a, 0, a.size() - 1, &startPosition, &endPosition, &startPositionLeft, &endPositionLeft, &startPositionRight, &endPositionRight);
 	end = clock();
 	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	appendToCsvFile("maxSubSum3.csv", startPosition, endPosition, maxSum, cpu_time_used);
+	appendToCsvFile("maxSubSum3_for_nSize10exp"+ to_string(k) + ".csv", startPosition, endPosition, maxSum, cpu_time_used);
 	return maxSum;
 }
 
-int maxSubSum4(const vector<int>& a)
+int maxSubSum4(const vector<int>& a, int k)
 {
 	int maxSum = 0, thisSum = 0, startPosition = 0, endPosition = 0, newPosition = 0;
 	clock_t start; // Tiempo de inicio
@@ -251,7 +248,7 @@ int maxSubSum4(const vector<int>& a)
 	}
 	end = clock();
 	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	appendToCsvFile("maxSubSum4.csv", startPosition, endPosition, maxSum, cpu_time_used);
+	appendToCsvFile("maxSubSum4_for_nSize10exp" + to_string(k) + ".csv", startPosition, endPosition, maxSum, cpu_time_used);
 	return maxSum;
 }
 
@@ -260,66 +257,100 @@ int main() {
 	string cell;
 	vector<int> parsedRow;
 	vector<vector<int>> parsedCsv;
-	
-	// Ejecutar solo una vez
-	 createSubsequenceDataset(4);
 
+	//for (int i = 1; i < 7; i++)
+	//{
+	//	// Ejecutar solo una vez
+	//	// createSubsequenceDataset(i);
+	//}
+
+	//cout << "Datasets creados!!!" << endl;
+
+	for (int k = 1; k <= 6; k++)
+	{
 	// Leer un archivo .csv y guardar su contenido en arreglos
 
-	fstream data("dataset1.csv",ios::in);
-	string line;
-	while (std::getline(data,line))
-	{
-		stringstream dataStream(line);
-		while (getline(dataStream, cell, ','))
+		fstream data("arrayssize10exp" + to_string(k) + ".csv", ios::in);
+		string line;
+		while (std::getline(data, line))
 		{
-			//cout << "Cell value is: " << cell << '\n';
-			parsedRow.push_back(stoi(cell));
+			stringstream datastream(line);
+			while (getline(datastream, cell, ','))
+			{
+				parsedRow.push_back(stoi(cell));	
+			}
+			parsedCsv.push_back(parsedRow);
+			//restart parsedrow vector
+			parsedRow.clear();
 		}
-		parsedCsv.push_back(parsedRow);
-		//restart parsedRow vector
-		parsedRow.clear();
-	}
 
-	// Imprimir los elementos de la matriz
-	for (int i = 0; i < parsedCsv.size(); i++)
-	{
-		for (int j = 0; j < parsedCsv[i].size(); j++)
+		// Imprimir los elementos de la matriz
+		// for (int i = 0; i < parsedCsv.size(); i++)
+		// {
+		//	cout << i << endl;
+		//	for (int j = 0; j < parsedCsv[i].size(); j++)
+		//	{
+		//		cout << parsedCsv[i][j] << ' ';
+		//	}
+		//	cout << endl;
+		// }
+
+		//A Small example
+
+
+		// Ejecutar el algoritmo con complejidad O(n)
+		createCsvFile("maxSubSum1_for_nSize10exp" + to_string(k) + ".csv");
+		for (int i = 0; i < parsedCsv.size(); i++)
 		{
-			cout << parsedCsv[i][j] << ' ';
+			maxSubSum4(parsedCsv[i], k);
 		}
-		cout << endl;
-	}
-	// Ejecutar el algoritmo con complejidad O(n)
-	createCsvFile("maxSubSum4.csv");
-	for (int i = 0; i < parsedCsv.size(); i++)
-	{
-		maxSubSum4(parsedCsv[i]);
-	}
-	// Ejecutar el algoritmo con complejidad O(n log n)
-	createCsvFile("maxSubSum3.csv"); // Posiciones erroneas
-	for (int i = 0; i < parsedCsv.size(); i++)
-	{
-		maxSubSum3(parsedCsv[i]);
+		// Ejecutar el algoritmo con complejidad O(n log n)
+		createCsvFile("maxSubSum3_for_nSize10exp" + to_string(k) + ".csv"); // Posiciones erroneas
+		for (int i = 0; i < parsedCsv.size(); i++)
+		{
+			maxSubSum3(parsedCsv[i], k);
+		}
+		parsedCsv.clear();
 	}
 
-	// Ejecutar el algoritmo con complejidad O( n^2)
-	createCsvFile("maxSubSum2.csv"); // Archivo donde se almacenan los resultados del utilizando los datos de entrada dataset1.csv
-	for (int i = 0; i < parsedCsv.size(); i++)
+		cout << "Algoritmos O(n) y O(n log2 n) ejecutados!!!" << endl;
+
+	for (int k = 1; k < 5; k++)
 	{
-		maxSubSum2(parsedCsv[i]);
+		// Leer un archivo .csv y guardar su contenido en arreglos
+
+		fstream data("arraysSize10exp" + to_string(k) + ".csv", ios::in);
+		string line;
+		while (std::getline(data, line))
+		{
+			stringstream dataStream(line);
+			while (getline(dataStream, cell, ','))
+			{
+				parsedRow.push_back(stoi(cell));
+			}
+			parsedCsv.push_back(parsedRow);
+			//restart parsedRow vector
+			parsedRow.clear();
+		}
+
+		//// Ejecutar el algoritmo con complejidad O( n^2)
+		createCsvFile("maxSubSum2_for_nSize10exp" + to_string(k) + ".csv"); // Archivo donde se almacenan los resultados del utilizando los datos de entrada dataset1.csv
+		for (int i = 0; i < parsedCsv.size(); i++)
+		{
+			maxSubSum2(parsedCsv[i], k);
+		}
+
+		// Ejecutar el algoritmo con complejidad O(n^3)
+		createCsvFile("maxSubSum1_for_nSize10exp" + to_string(k) + ".csv"); // Archivo donde se almacenan los resultados del algoritmo utilizando los datos de dataset1.csv
+		// NOTA: Los resultados se agregan a maxSubSum1.csv dentro de la función, por lo tanto se debe crear el archivo antes
+		for (int i = 0; i < parsedCsv.size(); i++)
+		{
+			maxSubSum1(parsedCsv[i], k);
+		}
+		parsedCsv.clear(); // Limpiar el arreglo 2D para que almacene solo el siguiente archivo
 	}
 
-	// Ejecutar el algoritmo con complejidad O(n^3)
-	createCsvFile("maxSubSum1.csv"); // Archivo donde se almacenan los resultados del algoritmo utilizando los datos de dataset1.csv
-	// NOTA: Los resultados se agregan a maxSubSum1.csv dentro de la función, por lo tanto se debe crear el archivo antes
-	for (int i = 0; i < parsedCsv.size(); i++)
-	{
-		maxSubSum1(parsedCsv[i]);
-	}
-	//cout << "La suma maxima es " << maxSubSum1(parsedCsv[0]) << endl;
-	//maxSubSum1(parsedCsv[1]);
-	//maxSubSum1(parsedCsv[2]);
+	cout << "Algoritmos O(n^2) y O(n^3) ejecutados!!!" << endl;
 	
 	return 0;
 }
